@@ -1,0 +1,51 @@
+@startuml
+class User {
+  name: string
+  email: string
+  password: string
+  isActive: boolean
+  role: EUserRole
+  lastLogin: number
+}
+
+class AssetCategory {
+  name: string
+  description: string
+}
+
+class Asset {
+  name: string
+  serialNumber: string
+  categories: Array[]
+  specification: string
+  description: string
+}
+
+class Notify {
+  asset: Asset
+  type: string
+  description: string
+  lastNotify: Date
+  nextNotify: Date
+}
+
+enum UserRole {
+  VIEWER
+  ADMIN
+  EDITOR
+  ALL
+}
+
+enum MaintenanceType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+User -- UserRole
+Asset -- AssetCategory
+Notify -- Asset
+Notify -- MaintenanceType
+
+@enduml
