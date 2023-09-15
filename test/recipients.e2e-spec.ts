@@ -14,28 +14,35 @@ import {
   validationFailedExpect,
 } from './expects';
 import { APP_URL, faker, generateTokenByRole } from './helper';
-import { User, UserSchema } from '../src/users/users.schema';
 
-import { Asset, AssetSchema } from '../src/assets/assets.schema';
-import { Notify, NotifySchema } from '../src/notifies/notifies.schema';
-import { CreateNotifyDto } from '../src/notifies/dto/create-notify.dto';
-import { MaintenanceType } from '../src/shared/interfaces/maintanance-type';
-const resource = 'Notification';
-const URL = '/notifications';
+import {
+  Recipient,
+  RecipientSchema,
+} from '../src/recipients/recipients.schema';
+import { CreateRecipientDto } from '../src/recipients/dto/create-recipient.dto';
+import {
+  AssetCategory,
+  AssetCategorySchema,
+} from '../src/assets-categories/assets-categories.schema';
+import { User, UserSchema } from '../src/users/users.schema';
+import console from 'console';
+const resource = 'Recipient';
+const URL = '/recipients';
 let userModel: mongoose.Model<User>;
-let notifyModel: mongoose.Model<Notify>;
-let assetModel: mongoose.Model<Asset>;
+let recipientModel: mongoose.Model<Recipient>;
+let categoryModel: mongoose.Model<AssetCategory>;
 
 let adminToken;
 let viewerToken;
 let found;
-let asset;
+let user;
+let category;
+let otherCategory;
 
-const createData: CreateNotifyDto = {
-  asset: '',
+const createData: CreateRecipientDto = {
+  user: '',
+  category: '',
   description: faker.sentence(),
-  type: MaintenanceType.WEEKLY,
-  lastNotify: faker.date({ year: 2023 }),
 };
 
 beforeAll(async () => {
@@ -43,13 +50,18 @@ beforeAll(async () => {
   userModel = mongoose.model('User', UserSchema);
   adminToken = await generateTokenByRole(userModel, EUserRole.ADMIN);
   viewerToken = await generateTokenByRole(userModel, EUserRole.VIEWER);
-  notifyModel = mongoose.model('Notify', NotifySchema);
-  assetModel = mongoose.model('Asset', AssetSchema);
-  asset = await assetModel.findOne();
-  createData.asset = asset._id.toString();
+  recipientModel = mongoose.model('Recipient', RecipientSchema);
+  categoryModel = mongoose.model('AssetCategory', AssetCategorySchema);
+  user = await userModel.findOne();
+  category = await categoryModel.findOne();
+  otherCategory = await categoryModel.create({ name: faker.name() });
+  createData.user = user._id.toString();
+  createData.category = category._id.toString();
 });
 afterAll(async () => {
-  await assetModel.deleteOne({ asset: asset._id });
+  await recipientModel.deleteOne({ user: user._id });
+  await categoryModel.deleteOne({ _id: otherCategory._id });
+
   await mongoose.disconnect();
 });
 describe(`${resource} List`, () => {
@@ -106,14 +118,14 @@ describe(`${resource} Create`, () => {
       .set({ Authorization: `Bearer ${adminToken}` })
       .expect(400)
       .expect(({ body }) => {
-        const errMessage = `asset should not be empty`;
+        const errMessage = `user should not be empty`;
         validationFailedExpect(expect, body, errMessage);
       });
   });
-  it('cannot create if asset asset not exists', () => {
+  it('cannot create if user not exists', () => {
     const postData = {
       ...createData,
-      asset: '62b9b69c41819e19ac9aa569',
+      user: '62b9b69c41819e19ac9aa569',
     };
     return request(APP_URL)
       .post(URL)
@@ -123,7 +135,7 @@ describe(`${resource} Create`, () => {
       .expect(({ body }) => {
         expect(body.meta).toBeDefined();
         expect(body.meta.status).toEqual(400);
-        expect(body.meta.message).toEqual(`Asset not found`);
+        expect(body.meta.message).toEqual(`User not found`);
       });
   });
 
@@ -138,12 +150,10 @@ describe(`${resource} Create`, () => {
         const output = { ...body };
         const dataToCheck = {
           ...createData,
-          lastNotify: createData.lastNotify.toISOString(),
         };
         Object.keys(dataToCheck).map((key) => {
           expect(output.data[key]).toEqual(dataToCheck[key]);
         });
-        expect(output.data.nextNotify).toBeDefined();
       });
   });
 
@@ -157,21 +167,28 @@ describe(`${resource} Create`, () => {
         duplicateErrorExpect(expect, body);
       });
   });
-  it('can create if defrent type', () => {
-    const postData = { ...createData, type: MaintenanceType.WEEKLY };
+  it('can create if deferent category', () => {
+    const postData = { ...createData, category: otherCategory._id.toString() };
     return request(APP_URL)
       .post(URL)
       .set({ Authorization: `Bearer ${adminToken}` })
       .send(postData)
-      .expect(400)
+      .expect(201)
       .expect(({ body }) => {
-        duplicateErrorExpect(expect, body);
+        createExpect(expect, body, resource);
+        const output = { ...body };
+        const dataToCheck = {
+          ...postData,
+        };
+        Object.keys(dataToCheck).map((key) => {
+          expect(output.data[key]).toEqual(dataToCheck[key]);
+        });
       });
   });
 });
 describe(`${resource} Detail`, () => {
   it('cannot get detail if not authenticated', async () => {
-    found = await notifyModel.findOne({ asset: createData.asset });
+    found = await recipientModel.findOne({ user: createData.user });
 
     return request(APP_URL)
       .get(`${URL}/${found._id}`)
@@ -208,7 +225,7 @@ describe(`${resource} Detail`, () => {
       .expect(({ body }) => {
         expect(body.meta).toBeDefined();
         expect(body.meta.status).toEqual(400);
-        expect(body.meta.message).toEqual(`Notify not found`);
+        expect(body.meta.message).toEqual(`${resource} not found`);
       });
   });
   it('can get detail', () => {
@@ -218,14 +235,19 @@ describe(`${resource} Detail`, () => {
       .expect(200)
       .expect(({ body }) => {
         showExpect(expect, body, resource);
-        const output = { ...body };
+        const output = { ...body.data, user: undefined, category: undefined };
         const dataToCheck = {
           ...createData,
-          lastNotify: createData.lastNotify.toISOString(),
+          user: undefined,
+          category: undefined,
         };
         Object.keys(dataToCheck).map((key) => {
-          expect(output.data[key]).toEqual(dataToCheck[key]);
+          expect(output[key]).toEqual(dataToCheck[key]);
         });
+        expect(body.data.user._id).toEqual(user._id.toString());
+        expect(body.data.user.email).toEqual(user.email);
+        expect(body.data.category._id).toEqual(category._id.toString());
+        expect(body.data.category.name).toEqual(category.name);
       });
   });
 });
@@ -267,7 +289,7 @@ describe(`${resource} Update`, () => {
       .expect(({ body }) => {
         expect(body.meta).toBeDefined();
         expect(body.meta.status).toEqual(400);
-        expect(body.meta.message).toEqual(`Notify not found`);
+        expect(body.meta.message).toEqual(`${resource} not found`);
       });
   });
   it('can update', async () => {
@@ -284,7 +306,6 @@ describe(`${resource} Update`, () => {
         const output = { ...body };
         const dataToCheck = {
           ...createData,
-          lastNotify: createData.lastNotify.toISOString(),
           description: updatedData.description,
         };
         Object.keys(dataToCheck).map((key) => {
@@ -332,7 +353,7 @@ describe(`${resource} Delete`, () => {
       .expect(({ body }) => {
         expect(body.meta).toBeDefined();
         expect(body.meta.status).toEqual(400);
-        expect(body.meta.message).toEqual(`Notify not found`);
+        expect(body.meta.message).toEqual(`${resource} not found`);
       });
   });
   it('can delete', async () => {

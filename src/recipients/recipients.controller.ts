@@ -10,7 +10,6 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { NotifiesService } from './notifies.service';
 import { Roles } from '../shared/guards/roles.decorator';
 import { EUserRole } from '../shared/interfaces/user-role.enum';
 import { MongoIdPipe } from '../shared/pipes/mongoId.pipe';
@@ -24,15 +23,16 @@ import {
 } from '../utils/response-parser';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../shared/guards/roles.guard';
-import { CreateNotifyDto } from './dto/create-notify.dto';
-import { UpdateNotifyDto } from './dto/update-notify.dto';
+import { CreateRecipientDto } from './dto/create-recipient.dto';
+import { UpdateRecipientDto } from './dto/update-recipient.dto';
+import { RecipientsService } from './recipients.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('notifications')
-export class NotifiesController {
-  constructor(private readonly service: NotifiesService) {}
+@Controller('recipients')
+export class RecipientsController {
+  constructor(private readonly service: RecipientsService) {}
 
-  private resource = 'Notification';
+  private resource = 'Recipient';
 
   @Get()
   @Roles(EUserRole.ADMIN)
@@ -43,17 +43,20 @@ export class NotifiesController {
 
   @Post()
   @Roles(EUserRole.ADMIN)
-  async create(@Body() data: CreateNotifyDto) {
-    await this.service.checkAssetExists(data.asset);
-    const find = await this.service.findBy({
-      asset: data.asset,
-      type: data.type,
+  async create(@Body() data: CreateRecipientDto) {
+    await Promise.all([
+      this.service.checkUserExists(data.user),
+      this.service.checkCategoryExists(data.category),
+    ]);
+
+    const found = await this.service.findBy({
+      user: data.user,
+      category: data.category,
     });
-    if (find) {
+    if (found) {
       throw new BadRequestException(`${this.resource} should be unique`);
     }
-    const postData = this.service.fillNextNotify(data);
-    const result = await this.service.create(postData, []);
+    const result = await this.service.create(data, []);
 
     return responseCreate(this.resource, result);
   }
@@ -61,25 +64,33 @@ export class NotifiesController {
   @Get(':id')
   @Roles(EUserRole.ADMIN)
   async get(@Param() { id }: MongoIdPipe) {
-    const result = await this.service.findOrFail({ _id: id });
+    const result = await this.service.findOrFail({ _id: id }, {}, {}, [
+      { path: 'user', select: 'name email' },
+      { path: 'category', select: 'name' },
+    ]);
     return responseDetail(this.resource, result);
   }
 
   @Put(':id')
   @Roles(EUserRole.ADMIN)
-  async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateNotifyDto) {
+  async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateRecipientDto) {
     const found = await this.service.getById(id);
-    await this.service.checkAssetExists(data.asset);
+    if (data.user) {
+      await this.service.checkUserExists(data.user);
+    }
+    if (data.category) {
+      await this.service.checkCategoryExists(data.category);
+    }
+
     const find = await this.service.findBy({
-      asset: data.asset,
-      type: data.type,
+      user: data.user,
+      category: data.category,
       _id: { $ne: id },
     });
     if (find) {
       throw new BadRequestException(`${this.resource} should be unique`);
     }
-    const postData = this.service.fillNextNotify(data);
-    const result = await this.service.update(found, postData, []);
+    const result = await this.service.update(found, data, []);
 
     return responseUpdate(this.resource, result);
   }

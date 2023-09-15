@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { AssetsCategoriesModule } from './assets-categories/assets-categories.module';
 import { AssetsModule } from './assets/assets.module';
 import { NotifiesModule } from './notifies/notifies.module';
+import { RecipientsModule } from './recipients/recipients.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { NotifiesModule } from './notifies/notifies.module';
     AssetsCategoriesModule,
     AssetsModule,
     NotifiesModule,
+    RecipientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

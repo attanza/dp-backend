@@ -18,7 +18,6 @@ import { RolesGuard } from '../shared/guards/roles.guard';
 import { EUserRole } from '../shared/interfaces/user-role.enum';
 import { MongoIdPipe } from '../shared/pipes/mongoId.pipe';
 import { ResourcePaginationPipe } from '../shared/pipes/resource-pagination.pipe';
-import { Redis } from '../utils/redis';
 import {
   responseCollection,
   responseCreate,
@@ -79,8 +78,6 @@ export class AssetsController {
   async destroy(@Param() { id }: MongoIdPipe) {
     const found = await this.service.getById(id);
     await this.service.delete(found);
-
-    await Redis.del(`Authorized_${id}`);
     return responseDelete(this.resource);
   }
 }
