@@ -29,6 +29,12 @@ class Notify {
   nextNotify: Date
 }
 
+class Recipient {
+  user: User
+  category: AssetCategory
+  description: string
+}
+
 enum UserRole {
   VIEWER
   ADMIN
@@ -47,5 +53,8 @@ User -- UserRole
 Asset -- AssetCategory
 Notify -- Asset
 Notify -- MaintenanceType
+Recipient -- User
+Recipient -- AssetCategory
+
 
 @enduml
