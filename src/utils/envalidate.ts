@@ -10,5 +10,9 @@ export const envalidate = () => {
     REDIS_URL: str(),
     REDIS_PASSWORD: str(),
     JWT_SECRET: str(),
+    PROJECT_ID: str(),
+    PRIVATE_KEY: str(),
+    CLIENT_EMAIL: str(),
+    STORAGE_MEDIA_BUCKET: str(),
   });
 };

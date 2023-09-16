@@ -8,6 +8,7 @@ import { AssetsCategoriesModule } from './assets-categories/assets-categories.mo
 import { AssetsModule } from './assets/assets.module';
 import { NotifiesModule } from './notifies/notifies.module';
 import { RecipientsModule } from './recipients/recipients.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RecipientsModule } from './recipients/recipients.module';
     AssetsModule,
     NotifiesModule,
     RecipientsModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

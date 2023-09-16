@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { hash } from 'argon2';
 import { EUserRole } from './shared/interfaces/user-role.enum';
-import { CreateUserDto } from './users/dto/create-user.dto';
 import { capitalCase, snakeCase } from 'change-case';
 import { UsersService } from './users/users.service';
+import { hash } from 'argon2';
 
 @Injectable()
 export class AppService {
@@ -15,7 +14,7 @@ export class AppService {
 
   async seed() {
     // Users
-    const userData: CreateUserDto[] = [];
+    const userData = [];
     const password = await hash('P@ssw0rd');
 
     Object.values(EUserRole).map((role: EUserRole) => {
@@ -24,6 +23,7 @@ export class AppService {
         email: `${snakeCase(role)}@gmail.com`,
         password,
         role,
+        isActive: true,
       });
     });
 
