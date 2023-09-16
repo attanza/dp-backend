@@ -1,4 +1,5 @@
 export enum EResources {
-  ASSET = 'ASSET',
-  USER = 'USER',
+  ASSET = 'asset',
+  USER = 'user',
+  CABINET = 'cabinet',
 }

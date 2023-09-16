@@ -34,7 +34,6 @@ export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Get()
-  @Roles(EUserRole.ADMIN)
   async paginate(@Query() query: ResourcePaginationPipe) {
     query.select = '-password';
     const result = await this.service.paginate(query, [
@@ -47,7 +46,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateUserDto) {
     const result = await this.service.create(data, ['email']);
 
@@ -55,14 +54,13 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(EUserRole.ADMIN)
   async get(@Param() { id }: MongoIdPipe) {
     const result = await this.service.findOrFail({ _id: id });
     return responseDetail(this.resource, result);
   }
 
   @Put(':id')
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateUserDto) {
     const found = await this.service.getById(id);
     const result = await this.service.update(found, data, ['email']);

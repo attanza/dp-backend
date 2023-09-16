@@ -9,7 +9,9 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AssetsCategoriesService } from './assets-categories.service';
+import { CabinetsService } from './cabinets.service';
+import { CreateCabinetDto } from './dto/create-cabinet.dto';
+import { UpdateCabinetDto } from './dto/update-cabinet.dto';
 import { Roles } from '../shared/guards/roles.decorator';
 import { EUserRole } from '../shared/interfaces/user-role.enum';
 import { MongoIdPipe } from '../shared/pipes/mongoId.pipe';
@@ -21,28 +23,33 @@ import {
   responseUpdate,
   responseDelete,
 } from '../utils/response-parser';
-import { CreateAssetsCategoryDto } from './dto/create-assets-category.dto';
-import { UpdateAssetsCategoryDto } from './dto/update-assets-category.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../shared/guards/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('assets-categories')
-export class AssetsCategoriesController {
-  private resource = 'AssetCategory';
+@Controller('cabinets')
+export class CabinetsController {
+  constructor(private readonly service: CabinetsService) {}
 
-  constructor(private readonly service: AssetsCategoriesService) {}
+  private resource = 'Cabinet';
 
   @Get()
   async paginate(@Query() query: ResourcePaginationPipe) {
-    const result = await this.service.paginate(query, ['name']);
+    const result = await this.service.paginate(query, [
+      'itemName',
+      'serialNumber',
+      'location',
+    ]);
     return responseCollection(this.resource, result);
   }
 
   @Post()
   @Roles(EUserRole.EDITOR)
-  async create(@Body() data: CreateAssetsCategoryDto) {
-    const result = await this.service.create(data, ['name']);
+  async create(@Body() data: CreateCabinetDto) {
+    const result = await this.service.create(data, [
+      'itemName',
+      'serialNumber',
+    ]);
 
     return responseCreate(this.resource, result);
   }
@@ -55,12 +62,12 @@ export class AssetsCategoriesController {
 
   @Put(':id')
   @Roles(EUserRole.EDITOR)
-  async update(
-    @Param() { id }: MongoIdPipe,
-    @Body() data: UpdateAssetsCategoryDto,
-  ) {
+  async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateCabinetDto) {
     const found = await this.service.getById(id);
-    const result = await this.service.update(found, data, ['name']);
+    const result = await this.service.update(found, data, [
+      'itemName',
+      'serialNumber',
+    ]);
     return responseUpdate(this.resource, result);
   }
 

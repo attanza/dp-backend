@@ -12,33 +12,26 @@ import {
   unauthorizedExpect,
   updateExpect,
   validationFailedExpect,
-  validationFailedItemNotExistsExpect,
 } from './expects';
 import { APP_URL, faker, generateTokenByRole } from './helper';
 import { User, UserSchema } from '../src/users/users.schema';
 
-import {
-  AssetCategory,
-  AssetCategorySchema,
-} from '../src/assets-categories/assets-categories.schema';
-import { Asset, AssetSchema } from '../src/assets/assets.schema';
-import { CreateAssetDto } from '../src/assets/dto/create-asset.dto';
-const resource = 'Asset';
-const URL = '/assets';
+import { Cabinet, CabinetSchema } from '../src/cabinets/cabinets.schema';
+import { CreateCabinetDto } from '../src/cabinets/dto/create-cabinet.dto';
+const resource = 'Cabinet';
+const URL = '/cabinets';
 let userModel: mongoose.Model<User>;
-let assetCategory: mongoose.Model<AssetCategory>;
-let assetModel: mongoose.Model<Asset>;
+let cabinetModel: mongoose.Model<Cabinet>;
 
 let adminToken;
 let viewerToken;
 let found;
-let category;
+const uniqueField = 'itemName';
 
-const createData: CreateAssetDto = {
-  name: faker.name(),
-  categories: [],
+const createData: CreateCabinetDto = {
+  itemName: faker.name(),
   serialNumber: faker.bb_pin(),
-  specification: faker.sentence(),
+  location: faker.sentence(),
   description: faker.sentence(),
 };
 
@@ -47,13 +40,10 @@ beforeAll(async () => {
   userModel = mongoose.model('User', UserSchema);
   adminToken = await generateTokenByRole(userModel, EUserRole.ADMIN);
   viewerToken = await generateTokenByRole(userModel, EUserRole.VIEWER);
-  assetCategory = mongoose.model('AssetCategory', AssetCategorySchema);
-  assetModel = mongoose.model('Asset', AssetSchema);
-  category = await assetCategory.findOne();
-  createData.categories.push(category._id.toString());
+  cabinetModel = mongoose.model('Cabinet', CabinetSchema);
 });
 afterAll(async () => {
-  await assetModel.deleteOne({ name: createData.name });
+  await cabinetModel.deleteOne({ name: createData.itemName });
   await mongoose.disconnect();
 });
 describe(`${resource} List`, () => {
@@ -110,23 +100,8 @@ describe(`${resource} Create`, () => {
       .set({ Authorization: `Bearer ${adminToken}` })
       .expect(400)
       .expect(({ body }) => {
-        const errMessage = `name should not be empty`;
+        const errMessage = `${uniqueField} should not be empty`;
         validationFailedExpect(expect, body, errMessage);
-      });
-  });
-  it('cannot create if asset category not exists', () => {
-    const postData = {
-      ...createData,
-      categories: ['62b9b69c41819e19ac9aa569'],
-    };
-    return request(APP_URL)
-      .post(URL)
-      .set({ Authorization: `Bearer ${adminToken}` })
-      .send(postData)
-      .expect(422)
-      .expect(({ body }) => {
-        const errMessage = `AssetCategory not exists`;
-        validationFailedItemNotExistsExpect(expect, body, errMessage);
       });
   });
 
@@ -159,7 +134,9 @@ describe(`${resource} Create`, () => {
 });
 describe(`${resource} Detail`, () => {
   it('cannot get detail if not authenticated', async () => {
-    found = await assetModel.findOne({ name: createData.name });
+    found = await cabinetModel.findOne({
+      [uniqueField]: createData[uniqueField],
+    });
 
     return request(APP_URL)
       .get(`${URL}/${found._id}`)
@@ -168,7 +145,7 @@ describe(`${resource} Detail`, () => {
         unauthorizedExpect(expect, body);
       });
   });
-  // it('cannot get detail list if unauthorized', () => {
+  // it('cannot get detail if unauthorized', () => {
   //   return request(APP_URL)
   //     .get(`${URL}/${found._id}`)
   //     .set({ Authorization: `Bearer ${viewerToken}` })
@@ -257,7 +234,7 @@ describe(`${resource} Update`, () => {
   });
   it('can update', async () => {
     const updatedData = { ...createData };
-    updatedData.name = faker.name();
+    updatedData.specificationDetail = faker.name();
 
     return request(APP_URL)
       .put(`${URL}/${found._id}`)
@@ -268,7 +245,7 @@ describe(`${resource} Update`, () => {
         updateExpect(expect, body, resource);
         const output = { ...body };
         const dataToCheck = { ...createData };
-        dataToCheck.name = updatedData.name;
+        dataToCheck.specificationDetail = updatedData.specificationDetail;
         Object.keys(dataToCheck).map((key) => {
           expect(output.data[key]).toEqual(dataToCheck[key]);
         });

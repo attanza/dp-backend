@@ -35,14 +35,13 @@ export class RecipientsController {
   private resource = 'Recipient';
 
   @Get()
-  @Roles(EUserRole.ADMIN)
   async paginate(@Query() query: ResourcePaginationPipe) {
     const result = await this.service.paginate(query, ['asset']);
     return responseCollection(this.resource, result);
   }
 
   @Post()
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateRecipientDto) {
     await Promise.all([
       this.service.checkUserExists(data.user),
@@ -62,7 +61,6 @@ export class RecipientsController {
   }
 
   @Get(':id')
-  @Roles(EUserRole.ADMIN)
   async get(@Param() { id }: MongoIdPipe) {
     const result = await this.service.findOrFail({ _id: id }, {}, {}, [
       { path: 'user', select: 'name email' },
@@ -72,7 +70,7 @@ export class RecipientsController {
   }
 
   @Put(':id')
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateRecipientDto) {
     const found = await this.service.getById(id);
     if (data.user) {

@@ -14,5 +14,6 @@ export const envalidate = () => {
     PRIVATE_KEY: str(),
     CLIENT_EMAIL: str(),
     STORAGE_MEDIA_BUCKET: str(),
+    GCS_LINK: str(),
   });
 };

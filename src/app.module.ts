@@ -9,6 +9,8 @@ import { AssetsModule } from './assets/assets.module';
 import { NotifiesModule } from './notifies/notifies.module';
 import { RecipientsModule } from './recipients/recipients.module';
 import { StorageModule } from './storage/storage.module';
+import { AttachmentsModule } from './attachments/attachments.module';
+import { CabinetsModule } from './cabinets/cabinets.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { StorageModule } from './storage/storage.module';
     NotifiesModule,
     RecipientsModule,
     StorageModule,
+    AttachmentsModule,
+    CabinetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

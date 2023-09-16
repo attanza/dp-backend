@@ -35,14 +35,13 @@ export class NotifiesController {
   private resource = 'Notification';
 
   @Get()
-  @Roles(EUserRole.ADMIN)
   async paginate(@Query() query: ResourcePaginationPipe) {
     const result = await this.service.paginate(query, ['asset']);
     return responseCollection(this.resource, result);
   }
 
   @Post()
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateNotifyDto) {
     await this.service.checkAssetExists(data.asset);
     const find = await this.service.findBy({
@@ -59,14 +58,13 @@ export class NotifiesController {
   }
 
   @Get(':id')
-  @Roles(EUserRole.ADMIN)
   async get(@Param() { id }: MongoIdPipe) {
     const result = await this.service.findOrFail({ _id: id });
     return responseDetail(this.resource, result);
   }
 
   @Put(':id')
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateNotifyDto) {
     const found = await this.service.getById(id);
     await this.service.checkAssetExists(data.asset);

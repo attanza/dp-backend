@@ -34,14 +34,13 @@ export class AssetsController {
   private resource = 'Asset';
 
   @Get()
-  @Roles(EUserRole.ADMIN)
   async paginate(@Query() query: ResourcePaginationPipe) {
     const result = await this.service.paginate(query, ['name', 'serialNumber']);
     return responseCollection(this.resource, result);
   }
 
   @Post()
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateAssetDto) {
     if (data.categories) {
       await this.service.checkAssetCategoryExists(data.categories);
@@ -52,14 +51,13 @@ export class AssetsController {
   }
 
   @Get(':id')
-  @Roles(EUserRole.ADMIN)
   async get(@Param() { id }: MongoIdPipe) {
     const result = await this.service.findOrFail({ _id: id });
     return responseDetail(this.resource, result);
   }
 
   @Put(':id')
-  @Roles(EUserRole.ADMIN)
+  @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateAssetDto) {
     const found = await this.service.getById(id);
     if (data.categories) {

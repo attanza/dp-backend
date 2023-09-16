@@ -49,15 +49,15 @@ describe(`${resource} List`, () => {
         unauthorizedExpect(expect, body);
       });
   });
-  it('cannot get list if unauthorized', () => {
-    return request(APP_URL)
-      .get(URL)
-      .set({ Authorization: `Bearer ${viewerToken}` })
-      .expect(403)
-      .expect(({ body }) => {
-        forbiddenExpect(expect, body);
-      });
-  });
+  // it('cannot get list if unauthorized', () => {
+  //   return request(APP_URL)
+  //     .get(URL)
+  //     .set({ Authorization: `Bearer ${viewerToken}` })
+  //     .expect(403)
+  //     .expect(({ body }) => {
+  //       forbiddenExpect(expect, body);
+  //     });
+  // });
   it('can get list', () => {
     return request(APP_URL)
       .get(URL)
@@ -138,15 +138,15 @@ describe(`${resource} Detail`, () => {
         unauthorizedExpect(expect, body);
       });
   });
-  it('cannot get detail list if unauthorized', () => {
-    return request(APP_URL)
-      .get(`${URL}/${found._id}`)
-      .set({ Authorization: `Bearer ${viewerToken}` })
-      .expect(403)
-      .expect(({ body }) => {
-        forbiddenExpect(expect, body);
-      });
-  });
+  // it('cannot get detail list if unauthorized', () => {
+  //   return request(APP_URL)
+  //     .get(`${URL}/${found._id}`)
+  //     .set({ Authorization: `Bearer ${viewerToken}` })
+  //     .expect(403)
+  //     .expect(({ body }) => {
+  //       forbiddenExpect(expect, body);
+  //     });
+  // });
 
   it('cannot get detail if invalid mongo id', () => {
     return request(APP_URL)
