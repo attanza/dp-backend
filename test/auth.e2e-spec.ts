@@ -39,31 +39,55 @@ beforeAll(async () => {
 afterAll(async () => {
   await mongoose.disconnect();
 });
-describe(`${resource} List`, () => {
-  it('cannot get list if unauthenticated', () => {
+describe(`${resource} Login`, () => {
+  it('cannot login if wrong credentials', () => {
     return request(APP_URL)
-      .get(URL)
+      .post(URL + '/login')
+      .send({
+        email: 'test@gmail.com',
+        password: 'password',
+      })
       .expect(401)
       .expect(({ body }) => {
         unauthorizedExpect(expect, body);
       });
   });
-  // it('cannot get list if unauthorized', () => {
-  //   return request(APP_URL)
-  //     .get(URL)
-  //     .set({ Authorization: `Bearer ${viewerToken}` })
-  //     .expect(403)
-  //     .expect(({ body }) => {
-  //       forbiddenExpect(expect, body);
-  //     });
-  // });
-  it('can get list', () => {
+  it('can login with correct credentials', () => {
     return request(APP_URL)
-      .get(URL)
+      .post(URL + '/login')
+      .send({
+        email: 'admin@gmail.com',
+        password: 'P@ssw0rd',
+      })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.meta).toBeDefined();
+        expect(body.meta.status).toEqual(200);
+        expect(body.meta.message).toEqual(`Login success`);
+        expect(body.data).toBeDefined();
+        expect(body.data.token).toBeDefined();
+      });
+  });
+});
+describe(`${resource} Me`, () => {
+  it('cannot get me if not authenticated', () => {
+    return request(APP_URL)
+      .get(URL + '/me')
+      .expect(401)
+      .expect(({ body }) => {
+        unauthorizedExpect(expect, body);
+      });
+  });
+  it('can get me if authenticated', () => {
+    return request(APP_URL)
+      .get(URL + '/me')
       .set({ Authorization: `Bearer ${adminToken}` })
       .expect(200)
       .expect(({ body }) => {
-        collectionExpects(expect, body, resource);
+        expect(body.meta).toBeDefined();
+        expect(body.meta.status).toEqual(200);
+        expect(body.meta.message).toEqual(`Me detail`);
+        expect(body.data).toBeDefined();
       });
   });
 });

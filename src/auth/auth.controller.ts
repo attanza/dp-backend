@@ -38,10 +38,10 @@ export class AuthController {
     return responseSuccess('Password updated', undefined);
   }
 
-  @Post('register')
-  @HttpCode(200)
-  async register(@Body() data: RegisterDto) {
-    await this.authService.register(data);
-    return responseSuccess('Register Succeed', undefined);
-  }
+  // @Post('register')
+  // @HttpCode(200)
+  // async register(@Body() data: RegisterDto) {
+  //   await this.authService.register(data);
+  //   return responseSuccess('Register Succeed', undefined);
+  // }
 }
