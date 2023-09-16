@@ -11,6 +11,7 @@ import { RecipientsModule } from './recipients/recipients.module';
 import { StorageModule } from './storage/storage.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { CabinetsModule } from './cabinets/cabinets.module';
+import { FilingsModule } from './filings/filings.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CabinetsModule } from './cabinets/cabinets.module';
     StorageModule,
     AttachmentsModule,
     CabinetsModule,
+    FilingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
