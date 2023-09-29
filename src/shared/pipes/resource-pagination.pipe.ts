@@ -1,4 +1,10 @@
-import { IsDateString, IsIn, IsNumberString, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export enum ESortMode {
   asc = 'asc',

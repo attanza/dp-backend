@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { verify } from 'argon2';
+import * as bcrypt from 'bcrypt';
 import { responseSuccess } from 'src/utils/response-parser';
 import moment from 'moment';
 import { RegisterDto, ResetPasswordDto } from './auth.dto';
@@ -26,7 +26,7 @@ export class AuthService {
 
       return null;
     }
-    const isVerified = await verify(user.password, pass);
+    const isVerified = await bcrypt.compare(pass, user.password);
 
     if (!isVerified) {
       console.log('not verified');
@@ -47,6 +47,12 @@ export class AuthService {
 
     return responseSuccess('Login success', {
       token: this.jwtService.sign(payload),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   }
 
@@ -58,7 +64,7 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto, id: string) {
     const user = await this.userService.findById<UserDocument>(id);
     const { oldPassword, newPassword } = dto;
-    const isVerified = await verify(user.password, oldPassword);
+    const isVerified = await bcrypt.compare(oldPassword, user.password);
     if (!isVerified) {
       this.logger.log('wrong old password');
       throw new BadRequestException('Change password failed');

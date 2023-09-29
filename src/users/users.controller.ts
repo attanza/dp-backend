@@ -39,7 +39,6 @@ export class UsersController {
     const result = await this.service.paginate(query, [
       'name',
       'email',
-      'isActive',
       'role',
     ]);
     return responseCollection(this.resource, result);

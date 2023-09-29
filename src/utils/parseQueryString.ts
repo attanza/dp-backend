@@ -92,7 +92,8 @@ export const queryStringParser = (
     query,
     select: ctx.select,
     sort,
-    populate: ctx.populate,
+    // populate: JSON.parse(JSON.stringify(ctx.populate)),
+    populate: JSON.parse(JSON.stringify(ctx.populate)),
     limit: Number(ctx.limit) || 10,
     page: Number(ctx.page) || 1,
     lean: true,
@@ -100,5 +101,7 @@ export const queryStringParser = (
 
   // const redisKey = crypto.createHash('md5').update(JSON.stringify(options)).digest('hex');
   // return { options, redisKey };
+  console.log(options);
+
   return options;
 };

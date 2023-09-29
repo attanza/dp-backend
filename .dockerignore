@@ -1,0 +1,9 @@
+Dockerfile.dockerignore;
+node_modules;
+npm - debug.log;
+dist.env;
+req.http;
+build.sh;
+Dockerfile.example;
+diagram.puml;
+diagram.png;

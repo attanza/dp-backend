@@ -36,7 +36,7 @@ export class RecipientsController {
 
   @Get()
   async paginate(@Query() query: ResourcePaginationPipe) {
-    const result = await this.service.paginate(query, ['asset']);
+    const result = await this.service.paginate(query, []);
     return responseCollection(this.resource, result);
   }
 
@@ -44,20 +44,12 @@ export class RecipientsController {
   @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateRecipientDto) {
     await Promise.all([
-      this.service.checkUserExists(data.user),
-      this.service.checkCategoryExists(data.category),
+      this.service.checkUserExists(data.users),
+      this.service.checkCategoryExists(data.categories),
     ]);
+    await this.service.saveMany(data.users, data.categories);
 
-    const found = await this.service.findBy({
-      user: data.user,
-      category: data.category,
-    });
-    if (found) {
-      throw new BadRequestException(`${this.resource} should be unique`);
-    }
-    const result = await this.service.create(data, []);
-
-    return responseCreate(this.resource, result);
+    return responseCreate(this.resource, undefined);
   }
 
   @Get(':id')
@@ -73,21 +65,21 @@ export class RecipientsController {
   @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateRecipientDto) {
     const found = await this.service.getById(id);
-    if (data.user) {
-      await this.service.checkUserExists(data.user);
+    if (data.users) {
+      await this.service.checkUserExists(data.users);
     }
-    if (data.category) {
-      await this.service.checkCategoryExists(data.category);
+    if (data.categories) {
+      await this.service.checkCategoryExists(data.categories);
     }
 
-    const find = await this.service.findBy({
-      user: data.user,
-      category: data.category,
-      _id: { $ne: id },
-    });
-    if (find) {
-      throw new BadRequestException(`${this.resource} should be unique`);
-    }
+    // const find = await this.service.findBy({
+    //   user: data.user,
+    //   category: data.category,
+    //   _id: { $ne: id },
+    // });
+    // if (find) {
+    //   throw new BadRequestException(`${this.resource} should be unique`);
+    // }
     const result = await this.service.update(found, data, []);
 
     return responseUpdate(this.resource, result);

@@ -3,8 +3,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './users.schema';
-import { hash } from 'argon2';
-
+import * as bcrypt from 'bcrypt';
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([
@@ -14,7 +13,8 @@ import { hash } from 'argon2';
           const schema = UserSchema;
           schema.pre('save', async function (next) {
             if (!this.isModified('password')) return next();
-            this.password = await hash(this.password);
+            const salt = await bcrypt.genSalt();
+            this.password = await bcrypt.hash(this.password, salt);
             return next();
           });
           return schema;

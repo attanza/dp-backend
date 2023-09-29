@@ -1,11 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { EUserRole } from '../shared/interfaces/user-role.enum';
+import { Exclude } from 'class-transformer';
 
 export type UserDocument = HydratedDocument<User>;
 
 @Schema({
   timestamps: true,
+  toJSON: {
+    transform: function (_, ret) {
+      delete ret['password'];
+      return ret;
+    },
+  },
 })
 export class User {
   @Prop()
@@ -15,6 +22,7 @@ export class User {
   email: string;
 
   @Prop()
+  @Exclude()
   password: string;
 
   @Prop({ default: false })

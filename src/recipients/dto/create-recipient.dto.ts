@@ -1,14 +1,13 @@
-import { IsMongoId, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsArray, IsMongoId, IsNotEmpty } from 'class-validator';
 
 export class CreateRecipientDto {
   @IsNotEmpty()
-  @IsMongoId()
-  user: string;
+  @IsArray()
+  @IsMongoId({ each: true })
+  users: string[];
 
   @IsNotEmpty()
-  @IsMongoId()
-  category: string;
-
-  @IsOptional()
-  description: string;
+  @IsArray()
+  @IsMongoId({ each: true })
+  categories: string[];
 }
