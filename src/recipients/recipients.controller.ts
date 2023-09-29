@@ -26,7 +26,7 @@ import { RolesGuard } from '../shared/guards/roles.guard';
 import { CreateRecipientDto } from './dto/create-recipient.dto';
 import { UpdateRecipientDto } from './dto/update-recipient.dto';
 import { RecipientsService } from './recipients.service';
-import { CreateRecipientBulkDto } from './dto/create-recipient-bulk.dto';
+import { CreateRecipientBulkUserDto } from './dto/create-recipient-bulk-user.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('recipients')
@@ -58,14 +58,15 @@ export class RecipientsController {
     const result = await this.service.create(data);
     return responseCreate(this.resource, result);
   }
-  @Post('/bulk')
+  @Post('/bulk-category')
   @Roles(EUserRole.EDITOR)
-  async createBulk(@Body() data: CreateRecipientBulkDto) {
+  async createBulk(@Body() data: CreateRecipientBulkUserDto) {
     await Promise.all([
-      this.service.checkUserExists(data.users),
+      this.service.checkUserExist(data.user),
       this.service.checkCategoryExists(data.categories),
     ]);
-    await this.service.saveMany(data.users, data.categories);
+    await this.service.deleteBy('user', data.user);
+    await this.service.saveMany([data.user], data.categories);
 
     return responseCreate(this.resource, undefined);
   }

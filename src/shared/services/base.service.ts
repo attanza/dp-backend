@@ -99,6 +99,10 @@ export abstract class BaseService<T> {
     await this.dbModel.deleteOne({ _id: data._id });
   }
 
+  async deleteBy(fieldKey: string, fieldValue: string) {
+    await this.dbModel.deleteMany({ [fieldKey]: fieldValue });
+  }
+
   /**
    * Find resource by id, when it not found then throw error
    * @param id: string
