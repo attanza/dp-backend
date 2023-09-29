@@ -14,6 +14,9 @@ export class Recipient {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'AssetCategory' })
   category: AssetCategory;
+
+  @Prop()
+  description: string;
 }
 
 export const RecipientSchema = SchemaFactory.createForClass(Recipient);

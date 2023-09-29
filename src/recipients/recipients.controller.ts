@@ -26,6 +26,7 @@ import { RolesGuard } from '../shared/guards/roles.guard';
 import { CreateRecipientDto } from './dto/create-recipient.dto';
 import { UpdateRecipientDto } from './dto/update-recipient.dto';
 import { RecipientsService } from './recipients.service';
+import { CreateRecipientBulkDto } from './dto/create-recipient-bulk.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('recipients')
@@ -44,6 +45,23 @@ export class RecipientsController {
   @Roles(EUserRole.EDITOR)
   async create(@Body() data: CreateRecipientDto) {
     await Promise.all([
+      this.service.checkUserExist(data.user),
+      this.service.checkCategoryExist(data.category),
+    ]);
+    const find = await this.service.findBy({
+      user: data.user,
+      category: data.category,
+    });
+    if (find) {
+      throw new BadRequestException(`${this.resource} should be unique`);
+    }
+    const result = await this.service.create(data);
+    return responseCreate(this.resource, result);
+  }
+  @Post('/bulk')
+  @Roles(EUserRole.EDITOR)
+  async createBulk(@Body() data: CreateRecipientBulkDto) {
+    await Promise.all([
       this.service.checkUserExists(data.users),
       this.service.checkCategoryExists(data.categories),
     ]);
@@ -54,10 +72,7 @@ export class RecipientsController {
 
   @Get(':id')
   async get(@Param() { id }: MongoIdPipe) {
-    const result = await this.service.findOrFail({ _id: id }, {}, {}, [
-      { path: 'user', select: 'name email' },
-      { path: 'category', select: 'name' },
-    ]);
+    const result = await this.service.findOrFail({ _id: id });
     return responseDetail(this.resource, result);
   }
 
@@ -65,21 +80,21 @@ export class RecipientsController {
   @Roles(EUserRole.EDITOR)
   async update(@Param() { id }: MongoIdPipe, @Body() data: UpdateRecipientDto) {
     const found = await this.service.getById(id);
-    if (data.users) {
-      await this.service.checkUserExists(data.users);
+    if (data.user) {
+      await this.service.checkUserExist(data.user);
     }
-    if (data.categories) {
-      await this.service.checkCategoryExists(data.categories);
+    if (data.category) {
+      await this.service.checkCategoryExist(data.category);
     }
 
-    // const find = await this.service.findBy({
-    //   user: data.user,
-    //   category: data.category,
-    //   _id: { $ne: id },
-    // });
-    // if (find) {
-    //   throw new BadRequestException(`${this.resource} should be unique`);
-    // }
+    const find = await this.service.findBy({
+      user: data.user,
+      category: data.category,
+      _id: { $ne: id },
+    });
+    if (find) {
+      throw new BadRequestException(`${this.resource} should be unique`);
+    }
     const result = await this.service.update(found, data, []);
 
     return responseUpdate(this.resource, result);

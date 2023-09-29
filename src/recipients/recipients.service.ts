@@ -17,14 +17,20 @@ export class RecipientsService extends BaseService<RecipientDocument> {
     super(model);
   }
 
+  async checkUserExist(id: string): Promise<void> {
+    await this.userService.findOrFail({ _id: id });
+  }
   async checkUserExists(ids: string[]): Promise<void> {
     await this.userService.shouldExists(ids);
+  }
+
+  async checkCategoryExist(id: string): Promise<void> {
+    await this.categoryService.findOrFail({ _id: id });
   }
 
   async checkCategoryExists(ids: string[]): Promise<void> {
     await this.categoryService.shouldExists(ids);
   }
-
   async saveMany(users: string[], categories: string[]) {
     const postData = [];
     users.forEach((user) => {

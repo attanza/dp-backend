@@ -25,7 +25,6 @@ import {
   AssetCategorySchema,
 } from '../src/assets-categories/assets-categories.schema';
 import { User, UserSchema } from '../src/users/users.schema';
-import console from 'console';
 const resource = 'Recipient';
 const URL = '/recipients';
 let userModel: mongoose.Model<User>;
@@ -38,11 +37,12 @@ let found;
 let user;
 let category;
 let otherCategory;
+// let otherUser;
 
 const createData: CreateRecipientDto = {
   user: '',
   category: '',
-  description: faker.sentence(),
+  description: '',
 };
 
 beforeAll(async () => {
@@ -53,6 +53,7 @@ beforeAll(async () => {
   recipientModel = mongoose.model('Recipient', RecipientSchema);
   categoryModel = mongoose.model('AssetCategory', AssetCategorySchema);
   user = await userModel.findOne();
+  // otherUser = await userModel.create({ role: EUserRole.EDITOR });
   category = await categoryModel.findOne();
   otherCategory = await categoryModel.create({ name: faker.name() });
   createData.user = user._id.toString();
@@ -177,11 +178,9 @@ describe(`${resource} Create`, () => {
       .expect(({ body }) => {
         createExpect(expect, body, resource);
         const output = { ...body };
-        const dataToCheck = {
-          ...postData,
-        };
-        Object.keys(dataToCheck).map((key) => {
-          expect(output.data[key]).toEqual(dataToCheck[key]);
+
+        Object.keys(postData).map((key) => {
+          expect(output.data[key]).toEqual(postData[key]);
         });
       });
   });
@@ -189,7 +188,6 @@ describe(`${resource} Create`, () => {
 describe(`${resource} Detail`, () => {
   it('cannot get detail if not authenticated', async () => {
     found = await recipientModel.findOne({ user: createData.user });
-
     return request(APP_URL)
       .get(`${URL}/${found._id}`)
       .expect(401)
@@ -235,19 +233,14 @@ describe(`${resource} Detail`, () => {
       .expect(200)
       .expect(({ body }) => {
         showExpect(expect, body, resource);
-        const output = { ...body.data, user: undefined, category: undefined };
-        const dataToCheck = {
-          ...createData,
-          user: undefined,
-          category: undefined,
-        };
-        Object.keys(dataToCheck).map((key) => {
-          expect(output[key]).toEqual(dataToCheck[key]);
+        const output = { ...body.data };
+        Object.keys(createData).map((key) => {
+          expect(output[key]).toEqual(createData[key]);
         });
-        expect(body.data.user._id).toEqual(user._id.toString());
-        expect(body.data.user.email).toEqual(user.email);
-        expect(body.data.category._id).toEqual(category._id.toString());
-        expect(body.data.category.name).toEqual(category.name);
+        // expect(body.data.user._id).toEqual(user._id.toString());
+        // expect(body.data.user.email).toEqual(user.email);
+        // expect(body.data.category._id).toEqual(category._id.toString());
+        // expect(body.data.category.name).toEqual(category.name);
       });
   });
 });

@@ -49,7 +49,7 @@ beforeAll(async () => {
   createData.asset = asset._id.toString();
 });
 afterAll(async () => {
-  await assetModel.deleteOne({ asset: asset._id });
+  await notifyModel.deleteOne({ asset: asset._id });
   await mongoose.disconnect();
 });
 describe(`${resource} List`, () => {
