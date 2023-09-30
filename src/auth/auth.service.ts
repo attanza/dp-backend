@@ -52,7 +52,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        avatar: process.env.GCS_LINK + user.avatar,
+        avatar: user.avatar ? process.env.GCS_LINK + user.avatar : undefined,
       },
     });
   }
