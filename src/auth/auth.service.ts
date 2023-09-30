@@ -52,6 +52,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: process.env.GCS_LINK + user.avatar,
       },
     });
   }
@@ -71,5 +72,10 @@ export class AuthService {
     }
     user.password = newPassword;
     await user.save();
+  }
+
+  async editUser(userId: string, data: any) {
+    const found = await this.userService.getById(userId);
+    return this.userService.update(found, data);
   }
 }

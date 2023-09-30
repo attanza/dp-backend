@@ -10,6 +10,7 @@ export type UserDocument = HydratedDocument<User>;
   toJSON: {
     transform: function (_, ret) {
       delete ret['password'];
+      ret['avatar'] = process.env.GCS_LINK + ret['avatar'];
       return ret;
     },
   },
@@ -30,6 +31,9 @@ export class User {
 
   @Prop({ default: EUserRole.VIEWER })
   role: EUserRole;
+
+  @Prop()
+  avatar: string;
 
   @Prop()
   lastLogin: number;
