@@ -10,7 +10,9 @@ export type UserDocument = HydratedDocument<User>;
   toJSON: {
     transform: function (_, ret) {
       delete ret['password'];
-      ret['avatar'] = process.env.GCS_LINK + ret['avatar'];
+      if (ret['avatar'] && ret['avatar'] != '') {
+        ret['avatar'] = process.env.GCS_LINK + ret['avatar'];
+      }
       return ret;
     },
   },
