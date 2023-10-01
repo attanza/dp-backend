@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { StorageConfig } from './storage-config';
+import { StorageConfig, instantiateStorage } from './storage-config';
 import { StorageFile } from './storage-file';
 import { DownloadResponse, Storage } from '@google-cloud/storage';
 @Injectable()
@@ -8,13 +8,7 @@ export class StorageService {
   private bucket: string;
 
   constructor() {
-    this.storage = new Storage({
-      projectId: StorageConfig.projectId,
-      credentials: {
-        client_email: StorageConfig.client_email,
-        private_key: StorageConfig.private_key,
-      },
-    });
+    this.storage = instantiateStorage();
 
     this.bucket = StorageConfig.mediaBucket;
   }

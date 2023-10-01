@@ -5,11 +5,14 @@ import { envalidate } from './utils/envalidate';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './utils/http-exception.filter';
 import mongoose from 'mongoose';
+import { isDev } from './utils/constants';
 async function bootstrap() {
   envalidate();
   const PORT = process.env.PORT;
   const app = await NestFactory.create(AppModule);
-  mongoose.set('debug', true);
+  if (isDev) {
+    mongoose.set('debug', true);
+  }
   app.enableCors({
     origin: ['http://localhost:3000'],
   });
