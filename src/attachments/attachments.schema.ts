@@ -6,7 +6,9 @@ export type AttachmentDocument = HydratedDocument<Attachment>;
   timestamps: true,
   toJSON: {
     transform: function (_, ret) {
-      ret['link'] = process.env.GCS_LINK + ret['link'];
+      if (ret['link'] && ret['link'] !== '') {
+        ret['link'] = process.env.GCS_LINK + ret['link'];
+      }
       return ret;
     },
   },

@@ -30,6 +30,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { fileValidator } from 'src/utils/file-validator';
+import { extension } from 'mime-types';
+import moment from 'moment';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('attachments')
@@ -56,9 +58,8 @@ export class AttachmentsController {
     @Body() data: CreateAttachmentDto,
   ) {
     fileValidator(file);
-    const path =
-      data.resource + '/' + data.resourceId + '_' + file.originalname;
-
+    const fileExtension = extension(file.mimetype);
+    const path = data.resource + '/' + moment().unix() + '.' + fileExtension;
     data.link = path.toLocaleLowerCase();
     const result = await this.service.create(data, ['name']);
     await this.storageService.save(
