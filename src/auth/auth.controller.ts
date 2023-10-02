@@ -5,19 +5,25 @@ import {
   Get,
   HttpCode,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { responseDetail, responseSuccess } from 'src/utils/response-parser';
-import { ResetPasswordDto } from './auth.dto';
+import {
+  responseDetail,
+  responseSuccess,
+  responseUpdate,
+} from 'src/utils/response-parser';
+import { ResetPasswordDto, UpdateProfileDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 import { StorageService } from 'src/storage/storage.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extension } from 'mime-types';
+import { Redis } from 'src/utils/redis';
 @Controller('auth')
 export class AuthController {
   ALLOWED_FILE_SIZE = 5000000;
@@ -53,6 +59,15 @@ export class AuthController {
     await this.authService.resetPassword(dto, req.user._id);
 
     return responseSuccess('Password updated', undefined);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('/profile')
+  async updateProfile(@Body() dto: UpdateProfileDto, @Req() req) {
+    const result = await this.authService.editUser(req.user._id, dto);
+
+    await Redis.del(`Authorized_${req.user._id}`);
+    return responseUpdate('Profile', result);
   }
 
   @Post('upload-avatar')

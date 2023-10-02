@@ -34,3 +34,13 @@ export class TokenRequestDto {
   @IsNotEmpty()
   code: string;
 }
+
+export class UpdateProfileDto {
+  @IsNotEmpty()
+  @MaxLength(150)
+  name: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+}
